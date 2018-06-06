@@ -1,0 +1,21 @@
+{
+  "name": "vidjot",
+  "version": "1.0.0",
+  "description": "Application to create video ideas",
+  "main": "src/app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "babel src -d dist",
+    "start": "nodemon --exec babel-node src/app.js"
+  },
+  "author": "c2ba",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.16.3"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "nodemon": "^1.17.5"
+  }
+}
