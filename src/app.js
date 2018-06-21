@@ -47,6 +47,23 @@ app.get('/ideas/add', (req, res) => {
     res.render('ideas/add')
 })
 
+// Edit Idea Form
+app.get('/ideas/edit/:id', async (req, res) => {
+    const idea = await Idea.findOne({
+        _id: req.params.id
+    })
+    res.render('ideas/edit', {
+        idea: idea
+    })
+})
+
+app.get('/ideas', async (req, res) => {
+    const ideas = await Idea.find({}).sort({ date: 'descending' })
+    res.render('ideas/index', {
+        ideas: ideas
+    })
+})
+
 // Process form
 app.post('/ideas', async (req, res) => {
     let errors = []
@@ -66,6 +83,7 @@ app.post('/ideas', async (req, res) => {
         })
         return
     }
+
     const newUser = { ...req.body } 
     const idea = await new Idea(newUser).save()
     res.redirect('/ideas')
