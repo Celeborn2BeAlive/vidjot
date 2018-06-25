@@ -2,6 +2,8 @@ import express from 'express'
 import exphbs from 'express-handlebars'
 import mongoose from 'mongoose'
 import bodyParser from 'body-parser'
+import methodOverride from 'method-override'
+
 import './models/Idea'
 
 const app = express()
@@ -11,7 +13,7 @@ async function connectToDatabase() {
     try {
         await mongoose.connect('mongodb://localhost/vidjot-dev');
         console.log('MongoDB connected...')
-    } catch(err) {
+    } catch (err) {
         console.error(err)
     }
 }
@@ -21,7 +23,7 @@ const Idea = mongoose.model('ideas')
 
 // Handlebars Middleware
 app.engine('handlebars', exphbs({
-	defaultLayout: 'main'
+    defaultLayout: 'main'
 }))
 app.set('view engine', 'handlebars')
 
@@ -29,17 +31,20 @@ app.set('view engine', 'handlebars')
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
+// Method override middleware
+app.use(methodOverride('_method'))
+
 // Index route
 app.get('/', (req, res) => {
-	const title = 'Welcome !'
-	res.render('index', {
-		title: title
-	})
+    const title = 'Welcome !'
+    res.render('index', {
+        title: title
+    })
 })
 
 // About route
 app.get('/about', (req, res) => {
-	res.render('about')
+    res.render('about')
 })
 
 // Add Idea Form
@@ -52,22 +57,27 @@ app.get('/ideas/edit/:id', async (req, res) => {
     const idea = await Idea.findOne({
         _id: req.params.id
     })
-    res.render('ideas/edit', {
-        idea: idea
-    })
+    res.render('ideas/edit', { idea })
+})
+
+// Edit Form process
+app.put('/ideas/:id', async (req, res) => {
+    const idea = await Idea.findOne({ _id: req.params.id })
+    idea.title = req.body.title
+    idea.details = req.body.details
+    await idea.save()
+    res.redirect('/ideas')
 })
 
 app.get('/ideas', async (req, res) => {
     const ideas = await Idea.find({}).sort({ date: 'descending' })
-    res.render('ideas/index', {
-        ideas: ideas
-    })
+    res.render('ideas/index', { ideas })
 })
 
 // Process form
 app.post('/ideas', async (req, res) => {
     let errors = []
-    
+
     if (!req.body.title) {
         errors.push({ text: 'Please add a title' })
     }
@@ -84,13 +94,14 @@ app.post('/ideas', async (req, res) => {
         return
     }
 
-    const newUser = { ...req.body } 
-    const idea = await new Idea(newUser).save()
+    const newUser = { ...req.body }
+    await new Idea(newUser).save()
+
     res.redirect('/ideas')
 })
 
 // Run server
 const port = 5000;
-app.listen(port, () =>  {
-	console.log(`Server started on port ${port}`)
+app.listen(port, () => {
+    console.log(`Server started on port ${port}`)
 })
