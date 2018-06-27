@@ -3,8 +3,13 @@ import exphbs from 'express-handlebars'
 import mongoose from 'mongoose'
 import bodyParser from 'body-parser'
 import methodOverride from 'method-override'
+import flash from 'connect-flash'
+import session from 'express-session'
+import path from 'path'
 
-import './models/Idea'
+// Load routes
+import ideas from './routes/ideas'
+import users from './routes/users'
 
 const app = express()
 
@@ -19,8 +24,6 @@ async function connectToDatabase() {
 }
 connectToDatabase()
 
-const Idea = mongoose.model('ideas')
-
 // Handlebars Middleware
 app.engine('handlebars', exphbs({
     defaultLayout: 'main'
@@ -31,8 +34,28 @@ app.set('view engine', 'handlebars')
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
+// Static folder
+app.use(express.static(path.join(__dirname, '..', 'public')))
+
 // Method override middleware
 app.use(methodOverride('_method'))
+
+// Express session middleware
+app.use(session({
+    secret: 'lol',
+    resave: true,
+    saveUninitialized: true
+}))
+
+app.use(flash())
+
+// Global variables
+app.use((req, res, next) => {
+    res.locals.success_msg = req.flash('success_msg')
+    res.locals.error_msg = req.flash('error_msg')
+    res.locals.error = req.flash('error')
+    next()
+})
 
 // Index route
 app.get('/', (req, res) => {
@@ -47,58 +70,8 @@ app.get('/about', (req, res) => {
     res.render('about')
 })
 
-// Add Idea Form
-app.get('/ideas/add', (req, res) => {
-    res.render('ideas/add')
-})
-
-// Edit Idea Form
-app.get('/ideas/edit/:id', async (req, res) => {
-    const idea = await Idea.findOne({
-        _id: req.params.id
-    })
-    res.render('ideas/edit', { idea })
-})
-
-// Edit Form process
-app.put('/ideas/:id', async (req, res) => {
-    const idea = await Idea.findOne({ _id: req.params.id })
-    idea.title = req.body.title
-    idea.details = req.body.details
-    await idea.save()
-    res.redirect('/ideas')
-})
-
-app.get('/ideas', async (req, res) => {
-    const ideas = await Idea.find({}).sort({ date: 'descending' })
-    res.render('ideas/index', { ideas })
-})
-
-// Process form
-app.post('/ideas', async (req, res) => {
-    let errors = []
-
-    if (!req.body.title) {
-        errors.push({ text: 'Please add a title' })
-    }
-    if (!req.body.details) {
-        errors.push({ text: 'Please add some details' })
-    }
-
-    if (errors.length > 0) {
-        res.render('ideas/add', {
-            errors: errors,
-            title: req.body.title,
-            details: req.body.details
-        })
-        return
-    }
-
-    const newUser = { ...req.body }
-    await new Idea(newUser).save()
-
-    res.redirect('/ideas')
-})
+app.use('/ideas', ideas)
+app.use('/users', users)
 
 // Run server
 const port = 5000;
