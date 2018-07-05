@@ -1,8 +1,6 @@
 import express from 'express'
 import mongoose from 'mongoose'
-
-import '../models/Idea'
-const Idea = mongoose.model('ideas')
+import Idea from '../models/Idea'
 
 const router = express.Router()
 

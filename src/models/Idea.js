@@ -15,4 +15,4 @@ const IdeaSchema = new Schema({
     }
 })
 
-mongoose.model('ideas', IdeaSchema)
+export default mongoose.model('ideas', IdeaSchema)
