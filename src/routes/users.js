@@ -1,6 +1,7 @@
 import express from 'express'
 import bcrypt from 'bcryptjs'
-//import passport from 'passport'
+import passport from 'passport'
+
 import User from '../models/User'
 
 const router = express.Router()
@@ -8,6 +9,15 @@ const router = express.Router()
 // User Login Route
 router.get('/login', (req, res) => {
     res.render('users/login')
+})
+
+// Login Form POST
+router.post('/login', (req, res, next) => {
+    passport.authenticate('local', {
+        successRedirect: '/ideas',
+        failureRedirect: '/users/login',
+        failureFlash: true
+    })(req, res, next)
 })
 
 // User Register Route
@@ -35,11 +45,11 @@ router.post('/register', async (req, res) => {
     const user = await User.findOne({ email: req.body.email })
     if (user) {
         req.flash('error_msg', 'Email already registered')
-        res.redirect('/users/login')
+        res.redirect('/users/register')
         return
     }
 
-    const { confirmPassword, ...newUser } = req.body
+    const { confirmPassword, ...newUser } = req.body // Extract all properties from req.body in newUser object, except 'confirmPassword'
     const salt = await bcrypt.genSalt(10)
     newUser.password = await bcrypt.hash(newUser.password, salt)
 
