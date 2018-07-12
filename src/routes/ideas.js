@@ -1,22 +1,23 @@
 import express from 'express'
 import mongoose from 'mongoose'
 import Idea from '../models/Idea'
+import { ensureAuthenticated } from '../helpers/auth'
 
 const router = express.Router()
 
 // Idea List
-router.get('/', async (req, res) => {
+router.get('/', ensureAuthenticated, async (req, res) => {
     const ideas = await Idea.find({}).sort({ date: 'descending' })
     res.render('ideas/index', { ideas })
 })
 
 // Add Idea Form
-router.get('/add', (req, res) => {
+router.get('/add', ensureAuthenticated, (req, res) => {
     res.render('ideas/add')
 })
 
 // Add Idea form process
-router.post('/', async (req, res) => {
+router.post('/', ensureAuthenticated, async (req, res) => {
     let errors = []
 
     if (!req.body.title) {
@@ -43,7 +44,7 @@ router.post('/', async (req, res) => {
 })
 
 // Edit Idea Form
-router.get('/edit/:id', async (req, res) => {
+router.get('/edit/:id', ensureAuthenticated, async (req, res) => {
     const idea = await Idea.findOne({
         _id: req.params.id
     })
@@ -51,7 +52,7 @@ router.get('/edit/:id', async (req, res) => {
 })
 
 // Edit Idea form process
-router.put('/:id', async (req, res) => {
+router.put('/:id', ensureAuthenticated, async (req, res) => {
     const idea = await Idea.findOne({ _id: req.params.id })
     idea.title = req.body.title
     idea.details = req.body.details
@@ -61,7 +62,7 @@ router.put('/:id', async (req, res) => {
 })
 
 // Delete Idea
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', ensureAuthenticated, async (req, res) => {
     await Idea.remove({ _id: req.params.id })
     req.flash('success_msg', 'Video idea removed')
     res.redirect('/ideas')
