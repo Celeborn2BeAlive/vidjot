@@ -85,7 +85,11 @@ setInterval(() => {
 
 // About route
 app.get('/about', (req, res) => {
-    res.render('about', { counter: counter })
+    res.render('about',
+        {
+            counter: counter,
+            env: process.env.NODE_ENV || 'development'
+        })
 })
 
 app.use('/ideas', ideas)
