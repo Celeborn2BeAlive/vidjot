@@ -78,9 +78,14 @@ app.get('/', (req, res) => {
     })
 })
 
+let counter = 0
+setInterval(() => {
+    ++counter
+}, 1000)
+
 // About route
 app.get('/about', (req, res) => {
-    res.render('about')
+    res.render('about', { counter: counter })
 })
 
 app.use('/ideas', ideas)
